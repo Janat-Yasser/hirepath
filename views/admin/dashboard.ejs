@@ -1,0 +1,79 @@
+<section class="dash-shell">
+  <%- include('../partials/admin-sidebar') %>
+
+  <div class="dash-main">
+    <div class="dash-header" data-reveal>
+      <div>
+        <p class="eyebrow">Recruiter dashboard</p>
+        <h1 style="font-size:30px;">Welcome back, <%= user.name.split(' ')[0] %></h1>
+      </div>
+      <a href="/admin/jobs/new" class="btn btn-primary">+ Post a new job</a>
+    </div>
+
+    <div class="stat-strip" data-reveal>
+      <div class="stat-box"><div class="n" data-count="<%= stats.jobCount %>">0</div><div class="l">Total jobs posted</div></div>
+      <div class="stat-box"><div class="n" data-count="<%= stats.openJobCount %>">0</div><div class="l">Currently open</div></div>
+      <div class="stat-box"><div class="n" data-count="<%= stats.applicationCount %>">0</div><div class="l">Applications received</div></div>
+      <div class="stat-box"><div class="n" data-count="<%= stats.candidateCount %>">0</div><div class="l">Registered candidates</div></div>
+    </div>
+
+    <div class="grid-2" style="grid-template-columns: 1.4fr 1fr; align-items:start;">
+      <div data-reveal>
+        <h3 style="margin-bottom:16px;">Your job postings</h3>
+        <% if (!jobs.length) { %>
+          <div class="empty-state">
+            <h3>No jobs yet</h3>
+            <p class="muted">Post your first role to start receiving AI-scored applications.</p>
+            <a href="/admin/jobs/new" class="btn btn-primary btn-sm">Post a job</a>
+          </div>
+        <% } %>
+        <% jobs.forEach(function(job){ %>
+          <div class="card" style="margin-bottom:14px;">
+            <div class="flex-between" style="align-items:flex-start;">
+              <div>
+                <div class="flex-between" style="justify-content:flex-start; gap:10px; margin-bottom:6px;">
+                  <h3 style="margin:0;"><%= job.title %></h3>
+                  <span class="tag <%= job.status === 'open' ? 'tag-good' : 'tag-muted' %>"><%= job.status %></span>
+                </div>
+                <div class="job-meta"><span><%= job.company %></span><span><%= job.location %></span><span><%= job.applicationCount %> applicant<%= job.applicationCount === 1 ? '' : 's' %></span>
+                  <% if (job.applicationCount) { %><span>avg match <%= job.avgMatchScore %>%</span><% } %>
+                </div>
+              </div>
+              <div style="display:flex; gap:8px; flex-shrink:0;">
+                <a href="/admin/jobs/<%= job._id %>/applications" class="btn btn-outline btn-sm">Applicants</a>
+                <a href="/admin/jobs/<%= job._id %>/pipeline" class="btn btn-outline btn-sm">Board</a>
+                <a href="/admin/jobs/<%= job._id %>/edit" class="btn btn-outline btn-sm">Edit</a>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+
+      <div data-reveal data-reveal-delay="1">
+        <h3 style="margin-bottom:16px;">Top-ranked applicants</h3>
+        <% if (!recentApplications.length) { %>
+          <p class="muted">Applicants will appear here, ranked by match score, as soon as they apply.</p>
+        <% } %>
+        <% recentApplications.forEach(function(app){ %>
+          <a href="/admin/jobs/<%= app.job._id %>/applications" style="display:block; text-decoration:none;">
+            <div class="app-row">
+              <div class="mini-ring" data-score="<%= app.matchScore %>">
+                <svg width="52" height="52" viewBox="0 0 52 52">
+                  <circle class="bg" cx="26" cy="26" r="22" />
+                  <circle class="fg" cx="26" cy="26" r="22" stroke-dasharray="138.2" stroke-dashoffset="138.2" data-circumference="138.2" />
+                </svg>
+                <div class="val"><%= app.matchScore %></div>
+              </div>
+              <div>
+                <strong style="font-size:14.5px;"><%= app.applicant.name %></strong>
+                <p class="muted" style="margin:2px 0 0; font-size:13px;"><%= app.job.title %></p>
+              </div>
+              <span class="status-pill status-<%= app.status %>"><%= app.status %></span>
+              <span></span><span></span>
+            </div>
+          </a>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,75 @@
+<section class="section" style="padding-top:56px;">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <p class="eyebrow">Open roles</p>
+      <h1 style="font-size:38px;" data-kinetic>Find your next role</h1>
+      <p><%= jobs.length %> position<%= jobs.length === 1 ? '' : 's' %> currently open.<% if (canPersonalize) { %> Ranked using your saved skills profile.<% } %></p>
+    </div>
+
+    <form method="GET" action="/jobs" class="card" style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;" data-reveal>
+      <input type="text" name="q" placeholder="Job title, company or skill" value="<%= query.q %>" style="flex:2; min-width:200px;" />
+      <input type="text" name="location" placeholder="Location" value="<%= query.location %>" style="flex:1; min-width:160px;" />
+      <select name="type" style="flex:1; min-width:160px;">
+        <option value="">Any type</option>
+        <% ['Full-time','Part-time','Contract','Internship','Remote'].forEach(function(t){ %>
+          <option value="<%= t %>" <%= query.type === t ? 'selected' : '' %>><%= t %></option>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn btn-primary magnetic">Search</button>
+    </form>
+
+    <% if (canPersonalize) { %>
+      <div style="display:flex; gap:10px; margin-bottom:28px;" data-reveal>
+        <a href="/jobs?<%= new URLSearchParams(Object.assign({}, query, {sort: ''})).toString() %>" class="btn btn-sm <%= query.sort !== 'match' ? 'btn-primary' : 'btn-outline' %>">Newest</a>
+        <a href="/jobs?<%= new URLSearchParams(Object.assign({}, query, {sort: 'match'})).toString() %>" class="btn btn-sm <%= query.sort === 'match' ? 'btn-primary' : 'btn-outline' %>">✨ Best match for you</a>
+      </div>
+    <% } %>
+
+    <% if (!jobs.length) { %>
+      <div class="empty-state" data-reveal>
+        <h3>No roles match those filters</h3>
+        <p class="muted">Try clearing a filter or checking back soon.</p>
+        <a href="/jobs" class="btn btn-outline btn-sm">Clear filters</a>
+      </div>
+    <% } %>
+
+    <% var palette = ['#3f5eef','#2ecc71','#f5a524','#8b5cf6','#ef4444','#0ea5e9']; %>
+    <% jobs.forEach(function(job, i){ %>
+      <a href="/jobs/<%= job._id %>" style="display:block; margin-bottom:16px;">
+        <div class="card card-hover tilt" data-reveal data-reveal-delay="<%= i % 3 %>">
+          <div class="job-card">
+            <div class="job-card-main">
+              <% if (typeof job.personalMatch === 'number') { %>
+                <div class="mini-ring" style="width:48px; height:48px; flex-shrink:0;" data-score="<%= job.personalMatch %>">
+                  <svg width="48" height="48" viewBox="0 0 48 48">
+                    <circle class="bg" cx="24" cy="24" r="20" />
+                    <circle class="fg" cx="24" cy="24" r="20" stroke-dasharray="125.6" stroke-dashoffset="125.6" data-circumference="125.6" />
+                  </svg>
+                  <div class="val" style="font-size:11px;"><%= job.personalMatch %></div>
+                </div>
+              <% } else { %>
+                <div class="job-logo" style="background:<%= palette[i % palette.length] %>;"><%= job.company.slice(0,1) %></div>
+              <% } %>
+              <div>
+                <h3><%= job.title %></h3>
+                <div class="job-meta">
+                  <span><%= job.company %></span>
+                  <span><%= job.location %></span>
+                  <span><%= job.type %></span>
+                  <span><%= job.experienceLevel %> level</span>
+                </div>
+                <div class="job-tags">
+                  <% (job.skills || []).slice(0,5).forEach(function(s){ %><span class="tag tag-blue"><%= s %></span><% }) %>
+                </div>
+              </div>
+            </div>
+            <div class="job-card-side">
+              <span class="job-salary"><%= job.salaryLabel %></span>
+              <span class="btn btn-outline btn-sm">View role →</span>
+            </div>
+          </div>
+        </div>
+      </a>
+    <% }) %>
+  </div>
+</section>

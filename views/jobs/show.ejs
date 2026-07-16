@@ -1,0 +1,151 @@
+<section class="section" style="padding-top:56px;">
+  <div class="container" style="max-width:900px;">
+    <a href="/jobs" class="muted mono" style="font-size:13px;">← Back to jobs</a>
+
+    <div style="margin:24px 0 36px;" data-reveal>
+      <div class="job-card" style="align-items:flex-start;">
+        <div class="job-card-main">
+          <div class="job-logo" style="width:64px; height:64px; font-size:22px; background:var(--blue-600);"><%= job.company.slice(0,1) %></div>
+          <div>
+            <h1 style="font-size:30px; margin-bottom:6px;"><%= job.title %></h1>
+            <div class="job-meta" style="font-size:15px;">
+              <span><%= job.company %></span><span><%= job.location %></span><span><%= job.type %></span><span><%= job.experienceLevel %> level</span>
+            </div>
+          </div>
+        </div>
+        <div class="job-card-side">
+          <span class="job-salary" style="font-size:20px;"><%= job.salaryLabel %></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="grid-template-columns: 1.6fr 1fr; align-items:start; gap:32px;">
+      <div data-reveal>
+        <div class="card" style="margin-bottom:20px;">
+          <h3>About the role</h3>
+          <p><%= job.description %></p>
+        </div>
+
+        <% if (job.responsibilities && job.responsibilities.length) { %>
+        <div class="card" style="margin-bottom:20px;">
+          <h3>What you'll do</h3>
+          <ul style="margin:0; padding-left:20px; color:var(--body);">
+            <% job.responsibilities.forEach(function(r){ %><li style="margin-bottom:8px;"><%= r %></li><% }) %>
+          </ul>
+        </div>
+        <% } %>
+
+        <% if (job.requirements && job.requirements.length) { %>
+        <div class="card">
+          <h3>What we're looking for</h3>
+          <ul style="margin:0; padding-left:20px; color:var(--body);">
+            <% job.requirements.forEach(function(r){ %><li style="margin-bottom:8px;"><%= r %></li><% }) %>
+          </ul>
+          <div class="job-tags" style="margin-top:16px;">
+            <% (job.skills || []).forEach(function(s){ %><span class="tag tag-blue"><%= s %></span><% }) %>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (radar) { %>
+        <% 
+          var cx = 130, cy = 130, maxR = 100;
+          var n = radar.length;
+          var axisPoints = radar.map(function(r, i){
+            var angle = (2 * Math.PI / n) * i - Math.PI / 2;
+            return { angle: angle, label: r.skill, matched: r.matched };
+          });
+          var shapePoints = axisPoints.map(function(a){
+            var v = a.matched ? 1 : 0.28;
+            var x = cx + maxR * v * Math.cos(a.angle);
+            var y = cy + maxR * v * Math.sin(a.angle);
+            return x.toFixed(1) + ',' + y.toFixed(1);
+          }).join(' ');
+          var gridRings = [0.33, 0.66, 1];
+        %>
+        <div class="card" style="margin-top:20px;" data-reveal>
+          <div class="flex-between" style="align-items:flex-start; margin-bottom:6px;">
+            <h3 style="margin-bottom:2px;">Your skill-gap radar</h3>
+          </div>
+          <p class="muted" style="font-size:13.5px; margin-bottom:18px;">A live comparison of your saved skills profile against this role's key requirements.</p>
+          <svg viewBox="0 0 260 260" class="radar-chart" data-reveal>
+            <% gridRings.forEach(function(ring){ %>
+              <% var ringPts = axisPoints.map(function(a){
+                   var x = cx + maxR * ring * Math.cos(a.angle);
+                   var y = cy + maxR * ring * Math.sin(a.angle);
+                   return x.toFixed(1) + ',' + y.toFixed(1);
+                 }).join(' '); %>
+              <polygon points="<%= ringPts %>" class="radar-grid" />
+            <% }) %>
+            <% axisPoints.forEach(function(a){ %>
+              <% var ex = (cx + maxR * Math.cos(a.angle)).toFixed(1); var ey = (cy + maxR * Math.sin(a.angle)).toFixed(1); %>
+              <line x1="<%= cx %>" y1="<%= cy %>" x2="<%= ex %>" y2="<%= ey %>" class="radar-axis" />
+            <% }) %>
+            <polygon points="<%= shapePoints %>" class="radar-shape" />
+            <% axisPoints.forEach(function(a){ %>
+              <% var lx = (cx + (maxR + 22) * Math.cos(a.angle)).toFixed(1); var ly = (cy + (maxR + 22) * Math.sin(a.angle)).toFixed(1); %>
+              <text x="<%= lx %>" y="<%= ly %>" class="radar-label <%= a.matched ? 'matched' : 'missing' %>" text-anchor="middle" dominant-baseline="middle"><%= a.label %></text>
+            <% }) %>
+          </svg>
+        </div>
+        <% } %>
+      </div>
+
+      <div data-reveal data-reveal-delay="1">
+        <div class="card card-flat" style="position:sticky; top:100px;">
+          <% if (!user) { %>
+            <h3>Ready to apply?</h3>
+            <p class="muted">Log in as a candidate to submit your resume for instant matching.</p>
+            <a href="/auth/login?next=/jobs/<%= job._id %>" class="btn btn-primary btn-block">Log in to apply</a>
+
+          <% } else if (user.role === 'admin') { %>
+            <h3>You're viewing as a recruiter</h3>
+            <p class="muted">Recruiter accounts can't submit applications.</p>
+            <a href="/admin" class="btn btn-outline btn-block">Go to dashboard</a>
+
+          <% } else if (existingApplication || applied) { %>
+            <h3>Application submitted</h3>
+            <p class="muted" style="margin-bottom:18px;">We've received your resume and scored it against this role.</p>
+            <% if (existingApplication) { %>
+              <div style="display:flex; align-items:center; gap:16px; margin-bottom:14px;">
+                <div class="mini-ring" style="width:70px; height:70px;" data-score="<%= existingApplication.matchScore %>">
+                  <svg width="70" height="70" viewBox="0 0 70 70">
+                    <circle class="bg" cx="35" cy="35" r="30" />
+                    <circle class="fg" cx="35" cy="35" r="30" stroke-dasharray="188.5" stroke-dashoffset="188.5" data-circumference="188.5" />
+                  </svg>
+                  <div class="val"><%= existingApplication.matchScore %>%</div>
+                </div>
+                <div>
+                  <span class="status-pill status-<%= existingApplication.status %>"><%= existingApplication.status %></span>
+                  <p class="muted" style="font-size:13px; margin-top:6px; margin-bottom:0;"><%= existingApplication.analyzerSummary %></p>
+                </div>
+              </div>
+            <% } %>
+            <a href="/user/dashboard" class="btn btn-outline btn-block">View all applications</a>
+
+          <% } else { %>
+            <h3>Apply to this role</h3>
+            <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+            <form action="/jobs/<%= job._id %>/apply" method="POST" enctype="multipart/form-data">
+              <div class="field">
+                <label>Resume</label>
+                <div class="file-drop" data-file-drop>
+                  <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt" style="display:none;" required />
+                  <strong>Click or drag your resume here</strong>
+                  <small>PDF, DOC, DOCX or TXT — max 5MB</small>
+                  <div class="file-drop-name" data-file-name style="display:none;"></div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="coverLetter">Cover note (optional)</label>
+                <textarea id="coverLetter" name="coverLetter" placeholder="A few lines about why you're a great fit..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Submit application</button>
+              <p class="hint" style="text-align:center; margin-top:12px;">Your resume is instantly scored against this role's requirements.</p>
+            </form>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

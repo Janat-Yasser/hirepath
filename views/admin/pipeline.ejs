@@ -1,0 +1,45 @@
+<section class="dash-shell">
+  <%- include('../partials/admin-sidebar') %>
+
+  <div class="dash-main">
+    <div class="dash-header">
+      <div>
+        <p class="eyebrow"><%= job.company %> · <%= job.location %></p>
+        <h1 style="font-size:28px;">Pipeline — <%= job.title %></h1>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <a href="/admin/jobs/<%= job._id %>/applications" class="btn btn-outline btn-sm">List view</a>
+        <a href="/admin" class="btn btn-outline btn-sm">← Dashboard</a>
+      </div>
+    </div>
+
+    <p class="muted" style="margin-bottom:24px; font-size:13.5px;">Drag a candidate card between columns to update their status instantly — no page reload.</p>
+
+    <div class="kanban" id="kanban-board" data-move-url-base="/admin/applications">
+      <% columns.forEach(function(col){ %>
+        <div class="kanban-col" data-stage="<%= col.stage %>">
+          <div class="kanban-col-head">
+            <span class="status-pill status-<%= col.stage %>"><%= col.stage %></span>
+            <span class="kanban-count mono"><%= col.applications.length %></span>
+          </div>
+          <div class="kanban-drop" data-stage="<%= col.stage %>">
+            <% col.applications.forEach(function(app){ %>
+              <div class="kanban-card" draggable="true" data-app-id="<%= app._id %>">
+                <div class="flex-between" style="margin-bottom:8px;">
+                  <strong style="font-size:14px;"><%= app.applicant ? app.applicant.name : 'Unknown' %></strong>
+                  <span class="mini-badge <%= app.matchScore >= 70 ? 'good' : (app.matchScore >= 40 ? 'mid' : 'low') %>"><%= app.matchScore %>%</span>
+                </div>
+                <p class="muted" style="font-size:12px; margin:0;"><%= app.applicant ? app.applicant.email : '' %></p>
+              </div>
+            <% }) %>
+            <% if (!col.applications.length) { %>
+              <div class="kanban-empty">Drop here</div>
+            <% } %>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<canvas id="confetti-canvas"></canvas>

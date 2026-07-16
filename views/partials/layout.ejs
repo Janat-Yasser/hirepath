@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof title !== 'undefined' ? title + ' — HirePath' : 'HirePath' %></title>
+  <meta name="description" content="HirePath — post jobs, review applicants, and let AI-assisted resume matching surface your best candidates first." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="cursor-glow" aria-hidden="true"></div>
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <%- include('./navbar') %>
+  <main>
+    <%- body %>
+  </main>
+  <%- include('./footer') %>
+
+  <!-- Command palette (Ctrl/Cmd+K) -->
+  <div class="cmdk-backdrop" id="cmdk-backdrop">
+    <div class="cmdk" role="dialog" aria-label="Quick search">
+      <div class="cmdk-input-row">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="cmdk-input" placeholder="Search jobs, or jump to a page…" autocomplete="off" />
+        <span class="cmdk-esc mono">ESC</span>
+      </div>
+      <div class="cmdk-results" id="cmdk-results"></div>
+    </div>
+  </div>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

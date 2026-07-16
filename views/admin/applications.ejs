@@ -1,0 +1,65 @@
+<section class="dash-shell">
+  <%- include('../partials/admin-sidebar') %>
+
+  <div class="dash-main">
+    <div class="dash-header">
+      <div>
+        <p class="eyebrow"><%= job.company %> · <%= job.location %></p>
+        <h1 style="font-size:28px;">Applicants — <%= job.title %></h1>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <a href="/admin/jobs/<%= job._id %>/pipeline" class="btn btn-outline btn-sm">Board view</a>
+        <a href="/admin/jobs/<%= job._id %>/applications?sort=match" class="btn <%= sort === 'match' ? 'btn-primary' : 'btn-ghost' %> btn-sm">Sort by match</a>
+        <a href="/admin/jobs/<%= job._id %>/applications?sort=recent" class="btn <%= sort === 'recent' ? 'btn-primary' : 'btn-ghost' %> btn-sm">Sort by recent</a>
+      </div>
+    </div>
+
+    <% if (!applications.length) { %>
+      <div class="empty-state">
+        <h3>No applications yet</h3>
+        <p class="muted">Share this role's link — new applicants will be ranked here automatically as they apply.</p>
+      </div>
+    <% } %>
+
+    <% applications.forEach(function(app){ %>
+      <div class="card" style="margin-bottom:16px;">
+        <div style="display:grid; grid-template-columns: 70px 1fr auto; gap:20px; align-items:center;">
+          <div class="mini-ring" data-score="<%= app.matchScore %>">
+            <svg width="60" height="60" viewBox="0 0 60 60">
+              <circle class="bg" cx="30" cy="30" r="25" />
+              <circle class="fg" cx="30" cy="30" r="25" stroke-dasharray="157" stroke-dashoffset="157" data-circumference="157" />
+            </svg>
+            <div class="val"><%= app.matchScore %>%</div>
+          </div>
+
+          <div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:4px;">
+              <strong style="font-size:16.5px;"><%= app.applicant ? app.applicant.name : 'Unknown applicant' %></strong>
+              <span class="status-pill status-<%= app.status %>"><%= app.status %></span>
+            </div>
+            <p class="muted" style="font-size:13.5px; margin-bottom:10px;"><%= app.applicant ? app.applicant.email : '' %> · Applied <%= new Date(app.createdAt).toLocaleDateString() %></p>
+            <p style="font-size:13.5px; margin-bottom:10px; color:var(--muted);"><%= app.analyzerSummary %></p>
+            <div class="job-tags" style="margin-bottom:6px;">
+              <% (app.matchedSkills || []).forEach(function(s){ %><span class="tag tag-good"><%= s %></span><% }) %>
+              <% (app.missingSkills || []).forEach(function(s){ %><span class="tag tag-missing"><%= s %></span><% }) %>
+            </div>
+            <% if (app.coverLetter) { %>
+              <p style="font-size:13.5px; font-style:italic; color:var(--muted); margin-top:10px;">“<%= app.coverLetter %>”</p>
+            <% } %>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+            <a href="/admin/resumes/<%= app.resumePath.split('/').pop() %>" class="btn btn-ghost btn-sm">Download resume</a>
+            <form action="/admin/applications/<%= app._id %>/status?_method=PUT" method="POST">
+              <select name="status" onchange="this.form.submit()" class="mono" style="font-size:12.5px; padding:8px 10px;">
+                <% ['pending','reviewed','shortlisted','rejected','hired'].forEach(function(s){ %>
+                  <option value="<%= s %>" <%= app.status === s ? 'selected' : '' %>><%= s %></option>
+                <% }) %>
+              </select>
+            </form>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+</section>
