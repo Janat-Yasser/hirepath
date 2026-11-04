@@ -66,7 +66,7 @@ job-portal/
    - `MONGO_URI` — your MongoDB connection string (local or Atlas)
    - `JWT_SECRET` — a long random string
    - `ADMIN_EMAIL` / `ADMIN_PASSWORD` — credentials for the seeded admin account
-   - `RECRUITER_SIGNUP_CODE` (optional) — set this to require an invite code before someone can self-register as a recruiter/admin from the public sign-up form
+   - `RECRUITER_SIGNUP_CODE` — invite code required to self-register as a recruiter. If it's blank, recruiter sign-up is only open when `NODE_ENV=development`
 
 3. **Make sure MongoDB is running**, then seed an admin user and a few sample jobs:
    ```bash
@@ -98,4 +98,5 @@ This keeps the matching fully explainable and self-contained — no external AI 
 
 - DOC/DOCX text extraction is best-effort (a lightweight binary-noise filter, not a full OOXML parser); PDF and TXT resumes give the most accurate scores.
 - Resume files are stored on local disk under `uploads/resumes/` and served only through an authenticated, ownership-checked admin route — not as raw static files.
-- To harden further for production: add rate limiting on auth routes, move uploads to object storage (S3/GCS), add email verification, and swap the skill dictionary/matching weights for your own domain.
+- Hardening already in place: async errors can't crash the server, search input is escaped (no regex injection), query params are forced to strings (no NoSQL operator injection), safe post-login redirects, and rate-limited auth routes. Run `npm test` for the unit tests.
+- Next steps for production: CSRF tokens on forms, uploads in object storage (S3/GCS), email verification.

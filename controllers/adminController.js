@@ -1,3 +1,4 @@
+const { escapeRegex } = require('../utils/safe');
 const Job = require('../models/Job');
 const Application = require('../models/Application');
 const User = require('../models/User');
@@ -160,9 +161,14 @@ exports.downloadResume = async (req, res) => {
 
   // Locate by filename against this admin's own jobs to prevent path traversal / cross-tenant access.
   const myJobIds = await Job.find({ postedBy: req.user._id }).distinct('_id');
+  // Stored names are "<timestamp>-<random>.<ext>"; reject anything else outright.
+  const filename = String(req.params.filename);
+  if (!/^[\w-]+\.(pdf|txt|docx?)$/i.test(filename)) {
+    return res.status(404).render('error', { title: 'Not found', code: 404, message: 'Resume not found.' });
+  }
   const match = await Application.findOne({
     job: { $in: myJobIds },
-    resumePath: { $regex: `${req.params.filename}$` },
+    resumePath: { $regex: `[\\/]${escapeRegex(filename)}$` },
   });
 
   if (!match) {

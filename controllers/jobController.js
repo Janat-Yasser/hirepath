@@ -1,19 +1,26 @@
 const Job = require('../models/Job');
 const Application = require('../models/Application');
+const fs = require('fs');
+const mongoose = require('mongoose');
 const { analyzeResumeFile, scoreSkillsAgainstJob, resolveJobSkills } = require('../utils/resumeAnalyzer');
+const { escapeRegex, str } = require('../utils/safe');
+
+const notFound = (res) => res.status(404).render('error', { title: 'Job not found', code: 404, message: 'That job posting does not exist or was removed.' });
+// Remove an uploaded file we decided not to keep (duplicate application, failed analysis...).
+const discardUpload = (file) => { if (file && file.path) fs.unlink(file.path, () => {}); };
 
 exports.listJobs = async (req, res) => {
-  const { q, location, type, sort } = req.query;
+  const q = str(req.query.q);
+  const location = str(req.query.location);
+  const type = str(req.query.type, 40);
+  const sort = str(req.query.sort, 20);
   const filter = { status: 'open' };
 
   if (q) {
-    filter.$or = [
-      { title: { $regex: q, $options: 'i' } },
-      { company: { $regex: q, $options: 'i' } },
-      { skills: { $regex: q, $options: 'i' } },
-    ];
+    const rx = { $regex: escapeRegex(q), $options: 'i' };
+    filter.$or = [{ title: rx }, { company: rx }, { skills: rx }];
   }
-  if (location) filter.location = { $regex: location, $options: 'i' };
+  if (location) filter.location = { $regex: escapeRegex(location), $options: 'i' };
   if (type) filter.type = type;
 
   let jobs = await Job.find(filter).sort('-createdAt').lean({ virtuals: true });
@@ -41,15 +48,10 @@ exports.listJobs = async (req, res) => {
 
 // Lightweight JSON search used by the command palette (Ctrl/Cmd+K).
 exports.searchJobsJson = async (req, res) => {
-  const q = (req.query.q || '').trim();
+  const q = str(req.query.q, 100);
   if (!q) return res.json([]);
-  const jobs = await Job.find({
-    status: 'open',
-    $or: [
-      { title: { $regex: q, $options: 'i' } },
-      { company: { $regex: q, $options: 'i' } },
-    ],
-  })
+  const rx = { $regex: escapeRegex(q), $options: 'i' };
+  const jobs = await Job.find({ status: 'open', $or: [{ title: rx }, { company: rx }] })
     .select('title company location')
     .limit(6)
     .lean();
@@ -57,6 +59,7 @@ exports.searchJobsJson = async (req, res) => {
 };
 
 exports.showJob = async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) return notFound(res);
   const job = await Job.findById(req.params.id).populate('postedBy', 'name').lean({ virtuals: true });
   if (!job) {
     return res.status(404).render('error', { title: 'Job not found', code: 404, message: 'That job posting does not exist or was removed.' });
@@ -92,10 +95,9 @@ exports.showJob = async (req, res) => {
 };
 
 exports.applyToJob = async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) { discardUpload(req.file); return notFound(res); }
   const job = await Job.findById(req.params.id).lean({ virtuals: true });
-  if (!job) {
-    return res.status(404).render('error', { title: 'Job not found', code: 404, message: 'That job posting does not exist or was removed.' });
-  }
+  if (!job) { discardUpload(req.file); return notFound(res); }
 
   try {
     if (!req.file) {
@@ -110,6 +112,7 @@ exports.applyToJob = async (req, res) => {
 
     const already = await Application.findOne({ job: job._id, applicant: req.user._id });
     if (already) {
+      discardUpload(req.file);
       return res.redirect(`/jobs/${job._id}?applied=1`);
     }
 
@@ -137,6 +140,7 @@ exports.applyToJob = async (req, res) => {
 
     res.redirect(`/jobs/${job._id}?applied=1`);
   } catch (err) {
+    discardUpload(req.file);
     res.status(400).render('jobs/show', {
       title: job.title,
       job,

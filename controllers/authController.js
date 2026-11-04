@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { safeNext } = require('../utils/safe');
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -50,9 +51,13 @@ exports.postRegister = async (req, res) => {
 
     // Only allow the 'admin' role to be self-assigned via a dedicated recruiter flow flag,
     // preventing arbitrary users from elevating themselves through form tampering.
-    const safeRole = role === 'admin' && req.body.recruiterCode === process.env.RECRUITER_SIGNUP_CODE
-      ? 'admin'
-      : 'user';
+    // Recruiter (admin) sign-up needs the invite code. With no code configured, open recruiter
+    // sign-up is allowed ONLY in development, never in production.
+    const code = process.env.RECRUITER_SIGNUP_CODE;
+    const recruiterAllowed = code
+      ? req.body.recruiterCode === code
+      : process.env.NODE_ENV === 'development';
+    const safeRole = role === 'admin' && recruiterAllowed ? 'admin' : 'user';
 
     const user = await User.create({ name, email, password, role: safeRole });
     sendTokenCookie(res, user._id);
@@ -60,14 +65,16 @@ exports.postRegister = async (req, res) => {
   } catch (err) {
     res.status(400).render('auth/register', {
       title: 'Create your account',
-      error: err.message || 'Something went wrong. Please try again.',
-      values: req.body,
+      error: err.name === 'ValidationError'
+        ? Object.values(err.errors).map((e) => e.message).join(' ')
+        : 'Something went wrong. Please try again.',
+      values: { name: req.body.name, email: req.body.email },
     });
   }
 };
 
 exports.getLogin = (req, res) => {
-  res.render('auth/login', { title: 'Welcome back', error: null, next: req.query.next || '' });
+  res.render('auth/login', { title: 'Welcome back', error: null, next: safeNext(req.query.next) || '' });
 };
 
 exports.postLogin = async (req, res) => {
@@ -84,9 +91,7 @@ exports.postLogin = async (req, res) => {
     }
 
     sendTokenCookie(res, user._id);
-    const dest = req.body.next && req.body.next.startsWith('/')
-      ? req.body.next
-      : user.role === 'admin' ? '/admin' : '/user/dashboard';
+    const dest = safeNext(req.body.next) || (user.role === 'admin' ? '/admin' : '/user/dashboard');
     res.redirect(dest);
   } catch (err) {
     res.status(500).render('auth/login', {
