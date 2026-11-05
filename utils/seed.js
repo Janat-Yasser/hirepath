@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 require('dotenv').config();
 const connectDB = require('../config/db');
 const User = require('../models/User');

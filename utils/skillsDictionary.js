@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 // A curated vocabulary of recognizable skills/technologies used to mine
 // both resumes and job requirements for comparable, canonical skill tags.
 // This keeps the matching engine deterministic and explainable (no black box),

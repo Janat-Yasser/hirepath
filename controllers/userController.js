@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 const Application = require('../models/Application');
 const User = require('../models/User');
 

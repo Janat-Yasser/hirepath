@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 require('dotenv').config();
 const express = require('express');
 // Express 4 doesn't catch errors thrown in async handlers; without this, one failed

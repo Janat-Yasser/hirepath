@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 const fs = require('fs');
 const path = require('path');
 const natural = require('natural');

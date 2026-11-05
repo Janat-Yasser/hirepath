@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 // Small input-safety helpers shared by controllers.
 
 // Escape user text so it can be used inside a RegExp / Mongo $regex as a literal.

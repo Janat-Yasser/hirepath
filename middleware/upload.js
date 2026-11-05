@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');

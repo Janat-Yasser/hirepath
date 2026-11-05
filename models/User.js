@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 

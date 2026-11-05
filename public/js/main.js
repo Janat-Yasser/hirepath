@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 // ---------- Scroll reveal ----------
 (function reveal() {
   const items = document.querySelectorAll('[data-reveal]');

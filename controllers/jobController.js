@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 const Job = require('../models/Job');
 const Application = require('../models/Application');
 const fs = require('fs');
