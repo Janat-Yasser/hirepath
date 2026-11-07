@@ -100,3 +100,7 @@ This keeps the matching fully explainable and self-contained — no external AI 
 - Resume files are stored on local disk under `uploads/resumes/` and served only through an authenticated, ownership-checked admin route — not as raw static files.
 - Hardening already in place: async errors can't crash the server, search input is escaped (no regex injection), query params are forced to strings (no NoSQL operator injection), safe post-login redirects, and rate-limited auth routes. Run `npm test` for the unit tests.
 - Next steps for production: CSRF tokens on forms, uploads in object storage (S3/GCS), email verification.
+
+## License
+
+© 2026 Janat Yasser. All rights reserved. See [LICENSE](LICENSE).

@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Janat Yasser. All rights reserved.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { escapeRegex, str, safeNext } = require('../utils/safe');
